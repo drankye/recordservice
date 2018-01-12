@@ -1,0 +1,14 @@
+@namespace("com.cloudera.recordservice.avro")
+protocol NationProtocol {
+  record NationAll {
+    int key;
+    string name;
+    int regionKey;
+    string comment;
+  }
+
+  record NationKeyName {
+    int n_nationkey;
+    string n_name;
+  }
+}

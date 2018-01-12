@@ -1,0 +1,27 @@
+---
+- topic: Orientation
+- pages:
+    - title: Overview
+      alias: RecordService Overview
+      file: index.html
+- topic: Installation
+- pages:
+    - title: Beta Release Notes
+      alias: Release Notes
+      file: ReleaseNotes.html
+    - title: Download RecordService
+      alias: Download and Install RecordService
+      file: install.html
+    - title: Download VM
+      alias: Download and install the VM
+      file: vm.html
+- topic: Demonstration
+- pages:
+    - title: Run Examples
+      alias: Download and run examples
+      file: examples.html
+- topic: Interrogation
+- pages:
+    - title: FAQ
+      alias: RecordService FAQ
+      file: faq.html

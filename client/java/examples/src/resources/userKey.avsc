@@ -1,0 +1,7 @@
+{"namespace": "com.cloudera.recordservice.examples",
+ "type": "record",
+ "name": "UserKey",
+ "fields": [
+     {"name": "favorite_color", "type": ["string", "null"]}
+ ]
+}

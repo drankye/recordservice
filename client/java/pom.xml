@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (c) 2015, Cloudera, inc.
+-->
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.cloudera.recordservice</groupId>
+  <artifactId>recordservice</artifactId>
+  <name>Record Service</name>
+  <version>0.4.0-cdh5.8.x</version>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>core</module>
+    <module>hive</module>
+    <module>mr</module>
+    <module>spark</module>
+    <module>hcatalog</module>
+    <module>hcatalog-pig-adapter</module>
+    <module>avro</module>
+    <module>avro-mr</module>
+    <module>examples</module>
+    <module>examples-spark</module>
+    <module>recordservice-dist</module>
+    <module>cluster-tests</module>
+  </modules>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.4</version>
+        <configuration>
+          <name>User API</name>
+          <destDir>apidocs</destDir>
+          <description>The RecordService Application Programmer's API</description>
+          <docletArtifact>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-annotations</artifactId>
+            <version>${hadoop.version}</version>
+          </docletArtifact>
+          <doclet>org.apache.hadoop.classification.tools.IncludePublicAnnotationsStandardDoclet</doclet>
+          <excludePackageNames>
+            *.example*:com.cloudera.recordservice.tests.*
+          </excludePackageNames>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <properties>
+    <commons.lang.version>2.6</commons.lang.version>
+    <thrift.version>0.9.2</thrift.version>
+    <slf4j.version>1.7.5</slf4j.version>
+    <hadoop.version>2.6.0-cdh5.8.0-SNAPSHOT</hadoop.version>
+    <hive.version>1.1.0-cdh5.8.0-SNAPSHOT</hive.version>
+    <avro.version>1.7.6-cdh5.8.0-SNAPSHOT</avro.version>
+    <spark.version>1.6.0-cdh5.8.0-SNAPSHOT</spark.version>
+    <hcatalog.version>1.1.0-cdh5.8.0-SNAPSHOT</hcatalog.version>
+    <scala.version>2.10.4</scala.version>
+    <scala.binary.version>2.10</scala.binary.version>
+    <sparkcore.version>2.10</sparkcore.version>
+
+    <!-- Note: avoid guava in the client libraries -->
+    <guava.version>14.0.1</guava.version>
+    <junit.version>4.11</junit.version>
+
+    <cdh.toolchain.home>/opt/toolchain</cdh.toolchain.home>
+    <!-- Clover properties -->
+    <cdh.clover.version>4.0.3</cdh.clover.version>
+    <cdh.clover.license.location>${cdh.toolchain.home}/clover-ant-${cdh.clover.version}/lib/clover.license</cdh.clover.license.location>
+
+  </properties>
+
+  <profiles>
+        <profile>
+           <id>local</id>
+           <activation>
+            <activeByDefault>true</activeByDefault>
+            </activation>
+             <properties>
+                 <deploy.maven>http://maven.jenkins.cloudera.com:8081/artifactory/libs-release-local</deploy.maven>
+             </properties>
+        </profile>
+        <profile>
+           <id>remote</id>
+           <properties>
+               <deploy.maven>https://repository.cloudera.com/cloudera/libs-release-local</deploy.maven>
+           </properties>
+        </profile>
+        <profile>
+          <id>cloudera-clover</id>
+          <activation>
+            <activeByDefault>false</activeByDefault>
+          </activation>
+          <dependencies>
+            <dependency>
+              <groupId>com.atlassian.clover</groupId>
+              <artifactId>clover</artifactId>
+              <version>${cdh.clover.version}</version>
+            </dependency>
+          </dependencies>
+          <build>
+            <plugins>
+              <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <dependencies>
+                  <dependency>
+                    <groupId>com.atlassian.maven.plugins</groupId>
+                    <artifactId>maven-clover2-plugin</artifactId>
+                    <version>${cdh.clover.version}</version>
+                  </dependency>
+                </dependencies>
+              </plugin>
+              <plugin>
+                <groupId>com.atlassian.maven.plugins</groupId>
+                <artifactId>maven-clover2-plugin</artifactId>
+                <version>${cdh.clover.version}</version>
+                <configuration>
+                  <includesAllSourceRoots>true</includesAllSourceRoots>
+                  <includesTestSourceRoots>true</includesTestSourceRoots>
+                  <excludes>
+                    <exclude>**/generated/**</exclude>
+                    <exclude>**/generated-sources/**</exclude>
+                    <exclude>**/src-instrumented/**</exclude>
+                  </excludes>
+                  <licenseLocation>${cdh.clover.license.location}</licenseLocation>
+                </configuration>
+                <executions>
+                  <execution>
+                    <id>clover-setup</id>
+                    <phase>process-sources</phase>
+                    <goals>
+                      <goal>setup</goal>
+                    </goals>
+                  </execution>
+                  <execution>
+                    <id>clover</id>
+                    <phase>site</phase>
+                    <goals>
+                      <goal>clover</goal>
+                    </goals>
+                  </execution>
+                </executions>
+              </plugin>
+            </plugins>
+          </build>
+        </profile>
+        <profile>
+          <id>sonar</id>
+          <activation>
+            <activeByDefault>false</activeByDefault>
+          </activation>
+          <properties>
+            <!-- EXAMPLE FOR MYSQL -->
+            <sonar.jdbc.url>
+              jdbc:mysql://sonar.jenkins.cloudera.com:3306/sonar?useUnicode=true&amp;characterEncoding=utf8
+            </sonar.jdbc.url>
+            <sonar.jdbc.driverClassName>com.mysql.jdbc.Driver</sonar.jdbc.driverClassName>
+            <sonar.jdbc.username>sonar</sonar.jdbc.username>
+            <sonar.jdbc.password>sonar</sonar.jdbc.password>
+            <!-- optional URL to server. Default value is http://localhost:9000 -->
+            <sonar.host.url>
+              http://sonar.jenkins.cloudera.com:9000
+            </sonar.host.url>
+          </properties>
+        </profile>
+    </profiles>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>3.0.1</version>
+      </plugin>
+
+      <!-- Normally, we take off the dependency report, saves time. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.7</version>
+        <configuration>
+          <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
+
+  <repositories>
+    <repository>
+      <id>cdh.rcs.releases.repo</id>
+      <url>https://repository.cloudera.com/content/groups/cdh-releases-rcs</url>
+      <name>CDH Releases Repository</name>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>cdh.releases.repo</id>
+      <url>https://repository.cloudera.com/content/repositories/releases</url>
+      <name>CDH Releases Repository</name>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>cdh.snapshots.repo</id>
+      <url>https://repository.cloudera.com/content/repositories/snapshots</url>
+      <name>CDH Snapshots Repository</name>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>cloudera.thirdparty.repo</id>
+      <url>https://repository.cloudera.com/content/repositories/third-party</url>
+      <name>Cloudera Third Party Repository</name>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+ <distributionManagement>
+    <repository>
+      <id>cdh.releases.repo</id>
+      <url>http://maven.jenkins.cloudera.com:8081/artifactory/libs-release-local</url>
+      <name>Releases Repository</name>
+    </repository>
+    <snapshotRepository>
+      <id>cdh.snapshots.repo</id>
+      <url>http://maven.jenkins.cloudera.com:8081/artifactory/libs-snapshot-local</url>
+      <name>Snapshots Repository</name>
+    </snapshotRepository>
+  </distributionManagement>
+</project>

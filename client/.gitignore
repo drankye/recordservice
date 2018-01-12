@@ -1,0 +1,15 @@
+generated-sources/
+target/
+build/
+
+thirdparty
+
+Makefile
+CMakeFiles/
+CMakeCache.txt
+Testing/
+CTestTestfile.cmake
+api/*.cmake
+cmake_install.cmake
+*.iml
+*.idea

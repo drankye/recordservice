@@ -1,0 +1,45 @@
+Copyright (c) 2015, Cloudera, inc.
+
+To use Hive + RecordService the user must run queries using a custom HiveInputFormat and
+use a RecordServiceSerDe for processing results. Some changes are required in Hive to make
+this fully transparent, so for the time being the user must create a second table with
+the same schema as the table they actually want to query (but with the RecordServideSerDe)
+and re-direct queries to the actual table at runtime.
+
+Below are steps for how to get configure your environment and get started:
+
+1) Build the JARs:
+   cd $RECORD_SERVICE_HOME/java && mvn package -DskipTests
+2) Copy the RecordService JAR's to a location where Hive can find them:
+   find $RECORD_SERVICE_HOME/java -name "*.jar" -exec cp '{}' ${HIVE_AUX_JARS_PATH} \;
+
+   Hive also likes these JARs to be in HDFS:
+   find $RECORD_SERVICE_HOME/java -name "*.jar" -exec hadoop fs -put -f '{}' ${HIVE_AUX_JARS_PATH} \;
+
+3) Open hive shell and create the re-direction table with the following SerDe/InputFormat:
+
+  CREATE EXTERNAL TABLE <table name>(<columnDescs>)
+  ROW FORMAT SERDE
+    'com.cloudera.recordservice.hive.RecordServiceSerDe'
+  STORED AS INPUTFORMAT
+    'com.cloudera.recordservice.mapred.RecordServiceInputFormat'
+  OUTPUTFORMAT
+    'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'
+
+  or in the impala-shell:
+  CREATE EXTERNAL TABLE <table name>(<columnDescs>) 
+  STORED BY RECORDSERVICE
+
+
+4) Set the following jobconf properties (could also be set in hive-site.xml):
+   hive>
+   set hive.input.format=com.cloudera.recordservice.hive.RecordServiceHiveInputFormat;
+   set recordservice.table.name=<actual table to query>;
+   set recordservice.db.name=<actual db to query>;
+
+5) Run a query (example):
+   hive>
+   set hive.input.format=com.cloudera.recordservice.hive.RecordServiceHiveInputFormat;
+   set recordservice.table.name=lineitem;
+   set recordservice.db.name=tpch10gb_parquet;
+   select sum(l_partkey) from rs.lineitem_hive_serde;

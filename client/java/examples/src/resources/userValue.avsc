@@ -1,0 +1,7 @@
+{"namespace": "com.cloudera.recordservice.examples",
+ "type": "record",
+ "name": "UserValue",
+ "fields": [
+     {"name": "age",  "type": "int"}
+ ]
+}

@@ -1,0 +1,28 @@
+# Site settings
+title: RecordService
+email: rs-team@cloudera.org
+description: "An abstraction layer between storage managers (for example, HDFS, HBase, Kudu) and compute frameworks (for example, MapReduce, Spark, Hive)."
+url: "http://github.mtv.cloudera.com/CDH/RecordServiceClient"
+
+license_url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+github_url: "http://github.mtv.cloudera.com/CDH/RecordServiceClient"
+issue_tracker_url: "https://jira.cloudera.com/browse/CDH/component/12921/"
+mailing_list_url: "http://github.mtv.cloudera.com/CDH/RecordServiceClient"
+contributing_url: "http://github.mtv.cloudera.com/CDH/RecordServiceClient"
+examples_url: "http://github.mtv.cloudera.com/CDH/RecordServiceClient"
+
+# version-specific
+baseurl: "/docs/"
+version: "Beta"
+javadoc_url: "/docs/apidocs/index.html"
+jdiff_url: "/docs/jdiff/changes.html"
+
+# Build settings
+include: ["./samples/"]
+markdown: kramdown
+
+kramdown:
+  input: GFM
+  coderay_line_numbers: table
+  
+

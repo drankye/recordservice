@@ -1,0 +1,449 @@
+// Licensed to Cloudera, Inc. under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  Cloudera, Inc. licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+{
+  "name" : "RECORD_SERVICE",
+  "label" : "RecordService (Beta)",
+  "description" : "RecordService is a secure data access service for reading structured data.",
+  "version" : "0.1.0",
+  "compatibility" : {
+    "cdhVersion" : {
+      "min" : "5",
+      "max" : "5"
+    }
+  },
+  "runAs" : {
+    "user" : "recordservice",
+    "group" : "recordservice",
+    /* FIXME: this should be recordservice but the generated keytab is still impala */
+    "principal" : "impala"
+  },
+  "icon" : "images/icon.png",
+  "parcel" : {
+    /* Automatically add the recordservice parcel repository */
+    "repoUrl" : "http://archive.cloudera.com/beta/recordservice/parcels/latest/",
+    "requiredTags" : ["recordservice", "cdh"]
+  },
+  "serviceDependencies" : [
+    {
+      "name" : "HDFS",
+      "required" : "true"
+    },
+    {
+      "name" : "HIVE",
+      "required" : "true"
+    },
+    {
+      "name"  : "SENTRY",
+      "required" : "false"
+    },
+    {
+      "name" : "HBASE",
+      "required" : "false"
+    },
+    {
+      "name" : "YARN",
+      "required" : "false"
+    }
+  ],
+  "parameters" : [
+    {
+      "name" : "recordservice_planner_port",
+      "label" : "RecordService Planner Port",
+      "description" : "The port the RecordService Planner will be set to run on. Clients need to connect on this port.",
+      "required" : "true",
+      "type" : "port",
+      "default" : 12050
+    },
+    {
+      "name" : "recordservice_worker_port",
+      "label" : "RecordService Worker Port",
+      "description" : "The port the RecordService Worker will be set to run on.",
+      "required" : "true",
+      "type" : "port",
+      "default" : 13050
+    },
+    {
+      "name" : "webserver_port",
+      "label" : "Debug Webserver Port",
+      "description" : "The port for the server debug webpage.",
+      "required" : "true",
+      "type" : "port",
+      "default" : 11050
+    },
+    {
+      "name" : "log_filename",
+      "label" : "Log Filename",
+      "description" : "Log filename.",
+      "required" : "true",
+      "type" : "string",
+      "default" : "recordserviced"
+    },
+    {
+      "name" : "log_dir",
+      "label" : "Log Directory",
+      "description" : "Log directory.",
+      "required" : "true",
+      "type" : "string",
+      "default" : "/var/log/recordserviced"
+    },
+    {
+      "name" : "v",
+      "label" : "Logging Level",
+      "description" : "Server logging level. Higher is more verbose.",
+      "required" : "true",
+      "type" : "long",
+      "min" : "0",
+      "default" : "1"
+    },
+    {
+      "name" : "enable_core_dump",
+      "label" : "Enable Core Dump",
+      "description" : "Used to generate a core dump to get more information about a crash. Unless otherwise configured systemwide using /proc/sys/kernel/core_pattern, the dump is generated in the configured core dump directory. The core file can be very large.",
+      "type" : "boolean",
+      "required" : "true",
+      "default" : "false"
+    },
+    {
+      "name" : "core_dump_directory",
+      "label" : "Core Dump Directory",
+      "description" : "If Enable Core Dump is set, RecordService processes will dump cores to this location.",
+      "type" : "path",
+      "pathType" : "serviceSpecific",
+      "required" : "true",
+      "default" : "/var/log/recordserviced"
+    },
+    {
+      "name" : "minidump_directory",
+      "label" : "Mini Dump Directory",
+      "description" : "RecordService processes will dump minidumps to this location on crash.",
+      "type" : "path",
+      "pathType" : "serviceSpecific",
+      "required" : "true",
+      "default" : "/var/log/recordserviced/minidumps"
+    },
+    {
+      "name" : "mem_limit",
+      "label" : "Memory Limit",
+      "description" : "The maximum memory allocated for each server. The server will fail requests if the memory usage goes above this.",
+      "required" : "true",
+      "type" : "memory",
+      "unit" : "gigabytes",
+      "min" : "1",
+      "default" : "8"
+    },
+    {
+      "name" : "sentry_advanced_config_safety_valve",
+      "label" : "Sentry Advanced Configuration Snippet (Safety Valve)",
+      "description" : "For advanced use only, a string to be inserted into sentry-site.xml.",
+      "type" : "string",
+      "default" : ""
+    },
+    {
+      "name" : "advanced_config_safety_valve",
+      "label" : "Advanced Configuration Snippet (Safety Valve)",
+      "description" : "Any configs added here will be overridden by their default values. This should be specified as --{key}={value}, separated by spaces.",
+      "type" : "string",
+      "default" : ""
+    },
+    {
+      "name" : "hdfs_advanced_config_safety_valve",
+      "label" : "HDFS Advanced Configuration Snippet (Safety Valve)",
+      "description" : "For advanced use only, a string to be inserted into hdfs-site.xml.",
+      "type" : "string",
+      "default" : ""
+    },
+    {
+      "name" : "debug",
+      "label" : "Run Debug Binaries",
+      "description" : "If true, run debug binaries.",
+      "type" : "boolean",
+      "required" : "true",
+      "default" : "false"
+    }
+  ],
+  "roles" : [
+    {
+      "name" : "RECORD_SERVICE_PW",
+      "label" : "RecordService Planner and Worker",
+      "pluralLabel" : "RecordService planner and worker",
+      "logging" : {
+        "dir" : "/var/log/recordserviced",
+        "filename" : "recordserviced.INFO",
+        "loggingType" : "glog",
+        "modifiable" : true
+      },
+      "externalLink" : {
+        "name" : "service_web_ui",
+        "label" : "RecordService Web UI",
+        "url" : "http://${host}:${webserver_port}"
+      },
+      "kerberosPrincipals" : [
+        {
+          "name" : "RECORD_SERVICE_PRINCIPAL",
+          "primary" : "${principal}",
+          "instance" : "${host}"
+        }
+      ],
+      "startRunner" : {
+        "program" : "scripts/control.sh",
+        "args" : [ "start_planner_worker" ],
+        "environmentVariables" : {
+          "PLANNER_PORT" : "${recordservice_planner_port}",
+          "WORKER_PORT" : "${recordservice_worker_port}",
+          "LOG_FILENAME" : "${log_filename}",
+          "HOSTNAME" : "${host}",
+          "WEBSERVER_PORT" : "${webserver_port}",
+          "LOG_DIR" : "${log_dir}",
+          "V" : "${v}",
+          "MEM_LIMIT" : "${mem_limit}G",
+          "SENTRY_CONFIG" : "${sentry_advanced_config_safety_valve}",
+          "ADVANCED_CONFIG" : "${advanced_config_safety_valve}",
+          "HDFS_CONFIG" : "${hdfs_advanced_config_safety_valve}",
+          "DEBUG" : "${debug}"
+        }
+      },
+      "stopRunner" : {
+        "program" : "scripts/control.sh",
+        "args" : [ "stopAll" ],
+        "timeout" : 180000
+      },
+      "topology" : { "minInstances" : 0 },
+      "cgroup" : {
+        "cpu" : {
+          "autoConfigured" : true
+        },
+        "blkio" : {
+          "autoConfigured" : true
+        }
+      }
+    },
+    {
+      "name" : "RECORD_SERVICE_PLANNER",
+      "label" : "RecordService Planner",
+      "pluralLabel" : "RecordService Planners",
+      "logging" : {
+        "dir" : "/var/log/recordserviced",
+        "filename" : "recordserviced.INFO",
+        "loggingType" : "glog",
+        "modifiable" : true
+      },
+      "externalLink" : {
+        "name" : "service_web_ui",
+        "label" : "RecordService Web UI",
+        "url" : "http://${host}:${webserver_port}"
+      },
+      "kerberosPrincipals" : [
+        {
+          "name" : "RECORD_SERVICE_PRINCIPAL",
+          "primary" : "${principal}",
+          "instance" : "${host}"
+        }
+      ],
+      "startRunner" : {
+        "program" : "scripts/control.sh",
+        "args" : [ "start_planner" ],
+        "environmentVariables" : {
+          "PLANNER_PORT" : "${recordservice_planner_port}",
+          "LOG_FILENAME" : "${log_filename}",
+          "HOSTNAME" : "${host}",
+          "WEBSERVER_PORT" : "${webserver_port}",
+          "LOG_DIR" : "${log_dir}",
+          "V" : "${v}",
+          "MEM_LIMIT" : "${mem_limit}G",
+          "SENTRY_CONFIG" : "${sentry_advanced_config_safety_valve}",
+          "ADVANCED_CONFIG" : "${advanced_config_safety_valve}",
+          "HDFS_CONFIG" : "${hdfs_advanced_config_safety_valve}",
+          "DEBUG" : "${debug}"
+        }
+      },
+      "stopRunner" : {
+        "program" : "scripts/control.sh",
+        "args" : [ "stopAll" ],
+        "timeout" : 180000
+      },
+      "topology" : { "minInstances" : 0 },
+      "cgroup" : {
+        "cpu" : {
+          "autoConfigured" : true
+        },
+        "blkio" : {
+          "autoConfigured" : true
+        }
+      }
+    },
+    {
+      "name" : "RECORD_SERVICE_WORKER",
+      "label" : "RecordService Worker",
+      "pluralLabel" : "RecordService Workers",
+      "logging" : {
+        "dir" : "/var/log/recordserviced",
+        "filename" : "recordserviced.INFO",
+        "loggingType" : "glog",
+        "modifiable" : true
+      },
+      "externalLink" : {
+        "name" : "service_web_ui",
+        "label" : "RecordService Web UI",
+        "url" : "http://${host}:${webserver_port}"
+      },
+      "kerberosPrincipals" : [
+        {
+          "name" : "RECORD_SERVICE_PRINCIPAL",
+          "primary" : "${principal}",
+          "instance" : "${host}"
+        }
+      ],
+      "startRunner" : {
+        "program" : "scripts/control.sh",
+        "args" : [ "start_worker" ],
+        "environmentVariables" : {
+          "WORKER_PORT" : "${recordservice_worker_port}",
+          "LOG_FILENAME" : "${log_filename}",
+          "HOSTNAME" : "${host}",
+          "WEBSERVER_PORT" : "${webserver_port}",
+          "LOG_DIR" : "${log_dir}",
+          "ENABLE_CORE_DUMP" : "${enable_core_dump}",
+          "CORE_DUMP_DIRECTORY" : "${core_dump_directory}",
+          "MINIDUMP_DIRECTORY" : "${minidump_directory}",
+          "V" : "${v}",
+          "MEM_LIMIT" : "${mem_limit}G",
+          "SENTRY_CONFIG" : "${sentry_advanced_config_safety_valve}",
+          "ADVANCED_CONFIG" : "${advanced_config_safety_valve}",
+          "HDFS_CONFIG" : "${hdfs_advanced_config_safety_valve}",
+          "DEBUG" : "${debug}"
+        }
+      },
+      "stopRunner" : {
+        "program" : "scripts/control.sh",
+        "args" : [ "stopAll" ],
+        "timeout" : 180000
+      },
+      "topology" : { "minInstances" : 0 },
+      "cgroup" : {
+        "cpu" : {
+          "autoConfigured" : true
+        },
+        "blkio" : {
+          "autoConfigured" : true
+        }
+      }
+    }
+  ],
+  "externalKerberosPrincipals" : [
+    {
+      "name" : "external_kerberos_principal",
+      "primary" : "${principal}"
+    }
+  ],
+  "gateway" : {
+    "alternatives" : {
+      "name" : "recordservice-conf",
+      "linkRoot" : "/etc/recordservice",
+      /* Use a number larger than the default priority number of recordservice-conf */
+      "priority" : 50
+    },
+    "scriptRunner" : {
+      "program" : "scripts/client.sh",
+      "args" : ["deploy"],
+      "environmentVariables" : {
+        "PLANNER_CONF_FILE" : "planner.properties",
+        "PW_CONF_FILE" : "pw.properties",
+        "RECORDSERVICE_CONF_FILE" : "recordservice-site.xml",
+        "SPARK_CONF_FILE" : "spark.conf",
+        "HDFS_CONFIG" : "${hdfs_advanced_config_safety_valve}"
+      }
+    },
+    "parameters" : [
+      {
+        "name" : "planner_rpc_timeout_ms",
+        "label" : "Planner RPC Timeout MS",
+        "description" : "Millisecond timeout on the planner RPCs.",
+        "required" : "true",
+        "configName": "recordservice.planner.rpc.timeoutMs",
+        "type" : "long",
+        "default" : "-1"
+      },
+      {
+        "name" : "worker_rpc_timeout_ms",
+        "label" : "Worker RPC Timeout MS",
+        "description" : "Millisecond timeout on the worker RPCs.",
+        "required" : "true",
+        "configName": "recordservice.worker.rpc.timeoutMs",
+        "type" : "long",
+        "default" : "-1"
+      },
+      {
+        "name" : "worker_enable_server_logging",
+        "label" : "Enable Worker Logging",
+        "description" : "If true, enable more fine grained server logging for this worker.",
+        "required" : "true",
+        "configName": "recordservice.worker.server.enableLogging",
+        "type" : "boolean",
+        "default" : "false"
+      }
+    ],
+    "configWriter" : {
+      "generators" : [
+        {
+          "filename" : "recordservice-conf/recordservice-site.xml",
+          "configFormat" : "hadoop_xml",
+          "includedParams" : [
+            "planner_rpc_timeout_ms",
+            "worker_rpc_timeout_ms",
+            "worker_enable_server_logging"
+          ],
+          "kerberosPrincipals": [
+            {
+              "principalName" : "external_kerberos_principal",
+              "propertyName" : "recordservice.kerberos.principal",
+              "external" : "true",
+              "instanceWildcard" : "_HOST"
+            }
+          ]
+        },
+        {
+          "filename" : "recordservice-conf/spark.conf",
+          "configFormat" : "properties",
+          "includedParams" : [
+            "planner_rpc_timeout_ms",
+            "worker_rpc_timeout_ms",
+            "worker_enable_server_logging"
+          ],
+          "kerberosPrincipals": [
+            {
+              "principalName" : "external_kerberos_principal",
+              "propertyName" : "recordservice.kerberos.principal",
+              "external" : "true",
+              "instanceWildcard" : "_HOST"
+            }
+          ]
+        }
+      ],
+      "peerConfigGenerators" : [
+        {
+          "filename" : "recordservice-conf/planner.properties",
+          "params" : ["recordservice_planner_port"],
+          "roleName": "RECORD_SERVICE_PLANNER"
+        },
+        {
+          "filename" : "recordservice-conf/pw.properties",
+          "params" : ["recordservice_planner_port"],
+          "roleName": "RECORD_SERVICE_PW"
+        }
+      ]
+    }
+  }
+}

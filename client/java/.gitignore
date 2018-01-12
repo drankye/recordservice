@@ -1,0 +1,10 @@
+# Eclipse files
+.project
+.classpath
+.settings/
+
+# Intellij files
+.idea/
+*.iml
+
+dependency-reduced-pom.xml

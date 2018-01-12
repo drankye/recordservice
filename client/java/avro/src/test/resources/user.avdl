@@ -1,0 +1,24 @@
+@namespace("com.cloudera.recordservice.avro")
+protocol UserProtocol {
+  record UserKey {
+    int age;
+    union {null, string} favorite_color = null;
+  }
+
+  record UserValue {
+    int favorite_number;
+    union {null, string} favorite_animal = null;
+  }
+
+  record UserWithInvalidExtraCols {
+    string name;
+    string null_str;
+    union {null, string} null_union;
+  }
+
+  record UserWithValidExtraCols {
+      string name;
+      int default_num = 10;
+      union {null, string} default_union = null;
+  }
+}

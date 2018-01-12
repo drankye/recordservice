@@ -1,0 +1,28 @@
+#!/bin/bash
+
+DIR=$(dirname $0)
+
+. "$DIR/common"
+. "$DIR/hdfs-common"
+
+function start {
+  if [[ ! -e "$NODE_DIR/data/dfs/nn/current" ]]; then
+    hdfs namenode -format 1</dev/null
+  fi
+  do_start hdfs namenode
+
+  # Wait for the name node to exit safe mode
+  TRIES=30
+  while ! hdfs dfsadmin -safemode wait 2>&1 | grep -q "OFF$"; do
+    printf "."
+    if [ ${TRIES} -le 0 ]; then
+      echo "Failed to start namenode"
+      return 1
+    fi
+    TRIES=`expr ${TRIES} - 1`
+  done
+  echo "Namenode started"
+  return 0
+}
+
+$1
